@@ -26,11 +26,11 @@ router.post("/login", async (req, res) => {
     const match = await bcrypt.compare(password, user.password);
     if (!match) {
         return res.status(401).json({ error: "Wrong password" });
-    }
+    } 
 
     const accessToken = sign({ username: user.username, id: user.id }, "process.env.JWT_SECRET");
 
-    res.json({accessToken, success: "User logged in"});
+    res.json({ accessToken, success: "User logged in", username: username, id: user.id });
 });
 router.get("/auth", validateToken, async (req, res) => {
     res.json(req.user);
