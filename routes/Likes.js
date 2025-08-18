@@ -10,24 +10,30 @@ router.get('/:postId', async (req, res) => {
     res.json(likes);
 })
 router.post('/', validateToken, async (req, res) => {
-    try {
-        const liked = req.body;
-        const username = req.user.username;
-        liked.username = username
-        const newLike = await PostLikes.create(liked);
-        res.json(newLike);
-    } catch (error) {
-        res.status(500).json({ error: error.message }); // ✅ Send error status
-    }
-})
-router.delete('/', validateToken, async (req, res) => {
+  try {
+    const { PostId } = req.body; // ✅ post to like/unlike
     const username = req.user.username;
-    PostLikes.destroy({
-        where: {
-            username: username
-        }
-    })
-    res.json("Succesfully deleted");
-})
+
+    // Check if this user already liked the post
+    const existingLike = await PostLikes.findOne({
+      where: { PostId, username }
+    });
+
+    if (existingLike) {
+      // ✅ Unlike (delete the like)
+      await PostLikes.destroy({
+        where: { PostId, username }
+      });
+      return res.json({ message: "Unliked successfully" });
+    } else {
+      // ✅ Like (create a new like)
+      const newLike = await PostLikes.create({ PostId, username, liked: true });
+      return res.json(newLike);
+    }
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 
 module.exports = router;
