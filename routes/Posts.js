@@ -27,8 +27,10 @@ router.get('/byId/:id', async (req, res) => {
   const post = await Posts.findByPk(id);
   res.json(post);
 })
-router.post('/', async (req, res) => {
+router.post('/', validateToken, async (req, res) => {
   const post = req.body;
+  const username = req.user.username;
+  post.username = username
   await Posts.create(post)
   res.json(post)
 })
