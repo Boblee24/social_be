@@ -4,7 +4,7 @@ const { Users } = require('../models');
 const bcrypt = require('bcrypt');
 const { sign } = require('jsonwebtoken');
 const { validateToken } = require('../middlewares/Authmiddleware');
-const Posts = require('../models/Posts');
+const { Posts } = require('../models');
 
 router.post("/", async (req, res) => {
     const { username, password } = req.body;
@@ -20,14 +20,14 @@ router.post("/", async (req, res) => {
 router.post("/login", async (req, res) => {
     const { username, password } = req.body;
     const user = await Users.findOne({ where: { username } });
- 
+
     if (!user) {
         return res.status(404).json({ error: "User doesn't exist" });
     }
     const match = await bcrypt.compare(password, user.password);
     if (!match) {
         return res.status(401).json({ error: "Wrong password" });
-    } 
+    }
 
     const accessToken = sign({ username: user.username, id: user.id }, "process.env.JWT_SECRET");
 
@@ -36,14 +36,16 @@ router.post("/login", async (req, res) => {
 router.get("/auth", validateToken, async (req, res) => {
     res.json(req.user);
 })
-router.get("/:id", async (req, res) => {
+router.get("/user/:id", async (req, res) => {
     const id = req.params.id
-    const user = await Users.findByPk(id)
+    const user = await Users.findByPk(id, {
+        attributes: { exclude: ["password"] }
+    });
     res.json(user)
 })
 router.get("/:id/posts", async (req, res) => {
     const id = req.params.id
-    const posts = await Posts.findAll({ where: { userId: id } })
+    const posts = await Posts.findAll({ where: { UserId: id } })
     res.json(posts)
 })
 
