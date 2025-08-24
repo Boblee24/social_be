@@ -19,19 +19,19 @@ router.get("/", async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
-
-
-
 router.get('/byId/:id', async (req, res) => {
   const id = req.params.id
   const post = await Posts.findByPk(id);
   res.json(post);
 })
 router.post('/', validateToken, async (req, res) => {
-  const post = req.body;
-  const username = req.user.username;
-  post.username = username
-  await Posts.create(post)
+  const { username, id } = req.user;
+  const post = await Posts.create({
+    ...req.body,     // your title, content, etc
+    username: username,        // from JWT
+    UserId: id       // foreign key 
+  });
+
   res.json(post)
 })
 
